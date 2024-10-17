@@ -1,13 +1,14 @@
 package pwd_services
 
-type AllPasswords struct {
-	Login    string `json:"login"`
-	Password string `json:"password"`
-}
+import (
+	"context"
+	"gophKeeper/internal/modules/pwd/pwd_services/dto/request"
+	"gophKeeper/internal/modules/pwd/pwd_services/dto/response"
+)
 
 type IPwdService interface {
-	SavePassword(username string, password string) error
-	DeletePassword(username string) error
-	GetPassword(username string) (string, error)
-	GetAllPasswords(username string) (AllPasswords, error)
+	SavePassword(ctx context.Context, dto request.SavePwdDTO) error
+	DeletePassword(ctx context.Context, dto request.DeletePwdDTO) error
+	GetAllPasswords(ctx context.Context, dto request.AllPwdDTO) ([]response.PwdDTO, error)
+	GetPassword(ctx context.Context, dto request.GetPwdDTO) (response.CredentialsDTO, error)
 }

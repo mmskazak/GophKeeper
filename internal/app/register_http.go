@@ -8,6 +8,7 @@ import (
 	"gophKeeper/internal/modules/auth/auth_http"
 	"gophKeeper/internal/modules/auth/auth_middleware"
 	"gophKeeper/internal/modules/auth/auth_services/auth_service"
+	"gophKeeper/internal/modules/pwd/routes"
 	"net/http"
 )
 
@@ -34,6 +35,8 @@ func registrationHandlersHTTP(
 		r.Get("/logout", func(w http.ResponseWriter, r *http.Request) {
 			getAuthHandlers(pool, cfg.SecretKey).Logout(w, r)
 		})
+
+		r = routes.RegistrationRoutesPwd(r, pool, cfg)
 	})
 
 	return r
