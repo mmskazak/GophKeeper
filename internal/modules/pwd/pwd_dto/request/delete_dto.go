@@ -1,14 +1,16 @@
-package pwd_dto
+package request
 
 import (
 	"encoding/json"
 	"fmt"
+	"gophKeeper/internal/helpers"
 	"io"
 	"net/http"
 )
 
 type DeletePwdDTO struct {
-	Login string `json:"login"`
+	PwdID  string `json:"pwd_id"`
+	UserID int    `json:"user_id"`
 }
 
 func DeletePwdDTOFromHTTP(r *http.Request) (DeletePwdDTO, error) {
@@ -21,5 +23,13 @@ func DeletePwdDTOFromHTTP(r *http.Request) (DeletePwdDTO, error) {
 	if err != nil {
 		return DeletePwdDTO{}, fmt.Errorf("unmarshalling body registration: %w", err)
 	}
+
+	// Извлекаем userID из контекста
+	userID, err := helpers.GetUserIDFromContext(r.Context())
+	if err != nil {
+		return DeletePwdDTO{}, fmt.Errorf("error GetUserIDFromContext: %w", err)
+	}
+
+	deletePwdDTO.UserID = userID
 	return deletePwdDTO, nil
 }

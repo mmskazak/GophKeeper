@@ -2,10 +2,13 @@ package pwd_http
 
 import (
 	"encoding/json"
-	"gophKeeper/internal/modules/pwd/pwd_dto"
+	"errors"
+	request2 "gophKeeper/internal/modules/pwd/pwd_dto/request"
 	"gophKeeper/internal/modules/pwd/pwd_services"
 	"net/http"
 )
+
+var someSpecificError = errors.New("updated record not found")
 
 type PwdHandlers struct {
 	pwdService pwd_services.IPwdService
@@ -18,12 +21,12 @@ func NewPwdHandlersHTTP(service pwd_services.IPwdService) PwdHandlers {
 }
 
 func (p PwdHandlers) SavePassword(w http.ResponseWriter, r *http.Request) {
-	savePwdDTO, err := pwd_dto.SavePwdDTOFromHTTP(r)
+	savePwdDTO, err := request2.SavePwdDTOFromHTTP(r)
 	if err != nil {
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
-	err = p.pwdService.SavePassword(savePwdDTO.Login, savePwdDTO.Password)
+	err = p.pwdService.SavePassword(r.Context(), savePwdDTO)
 	if err != nil {
 		http.Error(w, "", http.StatusInternalServerError)
 		return
@@ -33,27 +36,36 @@ func (p PwdHandlers) SavePassword(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p PwdHandlers) GetPassword(w http.ResponseWriter, r *http.Request) {
-	getPwdDTO, err := pwd_dto.GetPwdDTOFromHTTP(r)
+	getPwdDTO, err := request2.GetPwdDTOFromHTTP(r)
 	if err != nil {
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
-	password, err := p.pwdService.GetPassword(getPwdDTO.Login)
+	credentials, err := p.pwdService.GetPassword(r.Context(), getPwdDTO)
 	if err != nil {
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(password))
+
+	w.Header().Set("Content-Type", "application/json")
+	jsonResponse, err := json.Marshal(credentials)
+	if err != nil {
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+
+	// Устанавливаем статус и отправляем ответ
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonResponse)
 }
 
 func (p PwdHandlers) DeletePassword(w http.ResponseWriter, r *http.Request) {
-	getPwdDTO, err := pwd_dto.DeletePwdDTOFromHTTP(r)
+	deletePwdDTO, err := request2.DeletePwdDTOFromHTTP(r)
 	if err != nil {
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
-	err = p.pwdService.DeletePassword(getPwdDTO.Login)
+	err = p.pwdService.DeletePassword(r.Context(), deletePwdDTO)
 	if err != nil {
 		http.Error(w, "", http.StatusInternalServerError)
 		return
@@ -63,12 +75,12 @@ func (p PwdHandlers) DeletePassword(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p PwdHandlers) GetAllPasswords(w http.ResponseWriter, r *http.Request) {
-	allPwdDTO, err := pwd_dto.AllPwdDTOFromHTTP(r)
+	allPwdDTO, err := request2.AllPwdDTOFromHTTP(r)
 	if err != nil {
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
-	allPasswords, err := p.pwdService.GetAllPasswords(allPwdDTO.Login)
+	allPasswords, err := p.pwdService.GetAllPasswords(r.Context(), allPwdDTO)
 	if err != nil {
 		http.Error(w, "", http.StatusInternalServerError)
 		return
@@ -80,4 +92,25 @@ func (p PwdHandlers) GetAllPasswords(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write(marshaledAllPasswords)
+}
+
+func (p PwdHandlers) UpdatePassword(w http.ResponseWriter, r *http.Request) {
+	updatePwdDTO, err := request2.UpdatePwdDTOFromHTTP(r)
+	if err != nil {
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	err = p.pwdService.UpdatePassword(r.Context(), updatePwdDTO)
+	if err != nil {
+		if errors.Is(err, someSpecificError) {
+			http.Error(w, "", http.StatusNotFound) // Запись для обновления не найдена
+		} else {
+			http.Error(w, "", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
 }

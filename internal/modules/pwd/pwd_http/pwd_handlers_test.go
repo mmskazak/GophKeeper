@@ -1,8 +1,10 @@
 package pwd_http
 
 import (
+	"context"
 	"github.com/stretchr/testify/assert"
-	"gophKeeper/internal/modules/pwd/pwd_services"
+	request2 "gophKeeper/internal/modules/pwd/pwd_dto/request"
+	response2 "gophKeeper/internal/modules/pwd/pwd_dto/response"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,20 +12,19 @@ import (
 
 type FakePwdService struct{}
 
-func (f FakePwdService) SavePassword(username string, password string) error {
-	_ = username
-	_ = password
+func (f FakePwdService) SavePassword(ctx context.Context, dto request2.SavePwdDTO) error {
 	return nil
 }
 
-func (f FakePwdService) DeletePassword(username string) error {
+func (f FakePwdService) DeletePassword(ctx context.Context, dto request2.DeletePwdDTO) error {
 	return nil
 }
-func (f FakePwdService) GetPassword(username string) (string, error) {
-	return "secret", nil
+func (f FakePwdService) GetPassword(ctx context.Context, dto request2.GetPwdDTO) (response2.CredentialsDTO, error) {
+	return response2.CredentialsDTO{}, nil
 }
-func (f FakePwdService) GetAllPasswords(username string) (pwd_services.AllPasswords, error) {
-	return pwd_services.AllPasswords{}, nil
+
+func (f FakePwdService) GetAllPasswords(ctx context.Context, dto request2.AllPwdDTO) ([]response2.PwdDTO, error) {
+	return []response2.PwdDTO{}, nil
 }
 
 func TestPwdHandlers_SavePassword(t *testing.T) {
