@@ -1,0 +1,38 @@
+POST http://localhost:8080/file/save
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOjF9.X2KuV_6nTWk5ysPSjZ3DQe-eSn8QLiYv5qmyx93S2iE
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+My File Title 2
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+This is the 2 description of the file.
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="test.txt"
+Content-Type: text/plain
+
+< E:/test.txt
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+DELETE http://localhost:8080/file/delete
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOjF9.X2KuV_6nTWk5ysPSjZ3DQe-eSn8QLiYv5qmyx93S2iE
+
+{
+  "file_id": "1",
+  "user_id": 1
+}
+
+###
+GET http://localhost:8080/file/get/4
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOjF9.X2KuV_6nTWk5ysPSjZ3DQe-eSn8QLiYv5qmyx93S2iE
+
+###
+POST http://localhost:8080/file/all
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOjF9.X2KuV_6nTWk5ysPSjZ3DQe-eSn8QLiYv5qmyx93S2iE
+
+

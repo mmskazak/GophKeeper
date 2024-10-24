@@ -2,13 +2,18 @@ package app
 
 import (
 	"context"
+	"gophKeeper/internal/config"
+	"gophKeeper/internal/modules/auth/authhttp"
+	"gophKeeper/internal/modules/auth/authmiddleware"
+	"gophKeeper/internal/modules/auth/authservices/authservice"
+	"gophKeeper/internal/modules/card/routescard"
+	"gophKeeper/internal/modules/file/routesfile"
+	"gophKeeper/internal/modules/pwd/routespwd"
+	"gophKeeper/internal/modules/text/routes_text"
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"gophKeeper/internal/config"
-	"gophKeeper/internal/modules/auth/auth_http"
-	"gophKeeper/internal/modules/auth/auth_middleware"
-	"gophKeeper/internal/modules/auth/auth_services/auth_service"
-	"net/http"
 )
 
 func registrationHandlersHTTP(
@@ -28,19 +33,24 @@ func registrationHandlersHTTP(
 
 	r.Group(func(r chi.Router) {
 		r.Use(func(next http.Handler) http.Handler {
-			return auth_middleware.Authentication(next, cfg.SecretKey)
+			return authmiddleware.Authentication(next, cfg.SecretKey)
 		})
 
 		r.Get("/logout", func(w http.ResponseWriter, r *http.Request) {
 			getAuthHandlers(pool, cfg.SecretKey).Logout(w, r)
 		})
+
+		routespwd.RegistrationRoutesPwd(r, pool, cfg)
+		routesfile.RegistrationRoutesFile(r, pool, cfg)
+		routes_text.RegistrationRoutesText(r, pool, cfg)
+		routescard.RegistrationRoutesCard(r, pool, cfg)
 	})
 
 	return r
 }
 
-func getAuthHandlers(pool *pgxpool.Pool, secretKey string) *auth_http.AuthHandlers {
-	authService := auth_service.NewAuthService(pool)
-	authHandlers := auth_http.NewAuthHandlersHTTP(authService, secretKey)
+func getAuthHandlers(pool *pgxpool.Pool, secretKey string) *authhttp.AuthHandlers {
+	authService := authservice.NewAuthService(pool)
+	authHandlers := authhttp.NewAuthHandlersHTTP(authService, secretKey)
 	return &authHandlers
 }
